@@ -1,3 +1,2 @@
 # Pirobot
-### ROBOT
-**En proceso**
+
