@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include "sensor.h"
 #include <Wire.h>
 
@@ -18,4 +19,22 @@ void loop() {
     sensor1.medirYEnviar();
     sensor2.medirYEnviar();
     delay(500);  // Esperar 500ms antes de repetir el ciclo
+=======
+#include <Arduino.h>
+#include "sensor.h"
+#include <Wire.h>
+
+sensor misensor;
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+  misensor.iniciar();
+
+}
+
+void loop() {
+misensor.medir();
+delay(500);
+>>>>>>> bab335048e1c06f2bd1e658b8a751e1b6eaf5ac7
 }

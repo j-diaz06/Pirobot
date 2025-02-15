@@ -1,6 +1,7 @@
 #include "sensor.h"
 #include <Arduino.h>
 
+<<<<<<< HEAD
 Sensor::Sensor(uint8_t direccion, uint8_t xshut) {
     direccionI2C = direccion;
     pinXSHUT = xshut;
@@ -39,3 +40,27 @@ void Sensor::medirYEnviar() {
         Serial.println("Fuera de rango");
     }
 }
+=======
+Adafruit_VL53L0X lox;
+
+void sensor::iniciar(){
+  if (!lox.begin()) {
+        Serial.println("¡Error! No se pudo encontrar el VL53L0X.");
+        return;
+    }
+  Serial.println("VL53L0X inicializado correctamente.");
+  }
+
+void sensor::medir(){
+    VL53L0X_RangingMeasurementData_t measure;
+
+    // Obtener la medición de distancia
+    lox.rangingTest(&measure, false);
+
+    if (measure.RangeStatus != 4) { // Estado 4 significa fuera de rango
+        Serial.println("Distancia: " + String(measure.RangeMilliMeter) + " mm");
+        return;
+    }
+    Serial.println("Fuera de rango");
+  }
+>>>>>>> bab335048e1c06f2bd1e658b8a751e1b6eaf5ac7
