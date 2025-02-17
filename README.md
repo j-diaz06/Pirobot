@@ -2,6 +2,6 @@
 proyecto de embebidos
 
 integrantes:
-- samuel mora
-- jaime andres
-- ____________
+- samuel mora marin
+- jaime andres diaz
+- wilson stiven rios
