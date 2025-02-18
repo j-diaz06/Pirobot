@@ -1,5 +1,4 @@
 #include "Adafruit_VL53L0X.h"
-<<<<<<< HEAD
 
 class Sensor {
     Adafruit_VL53L0X sensor;
@@ -12,13 +11,3 @@ public:
     int medir();  // Devuelve la distancia en mm
     void medirYEnviar();  // Mide la distancia y la envía por Serial
 };
-=======
-extern Adafruit_VL53L0X lox;
-
-class sensor{
-  
-  public:
-  void iniciar();
-  void medir();
-  };
->>>>>>> bab335048e1c06f2bd1e658b8a751e1b6eaf5ac7
