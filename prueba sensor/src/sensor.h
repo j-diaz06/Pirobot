@@ -5,7 +5,7 @@ class Sensor {
     uint8_t direccionI2C;  // Dirección única para cada sensor
     uint8_t pinXSHUT;      // Pin XSHUT para habilitar/deshabilitar el sensor
 
-public:
+    public:
     Sensor(uint8_t direccion, uint8_t xshut);  // Constructor con dirección y XSHUT
     void iniciar();
     int medir();  // Devuelve la distancia en mm
