@@ -17,6 +17,14 @@ void Motor::configurar() {
     pinMode(in4, OUTPUT);
 }
 
+void Motor::setVelocidad(int vel) {
+    velocidad = constrain(vel, 0, 255);
+}
+
+int Motor::getVelocidad() {
+    return velocidad;
+}
+
 void Motor::avanzar(int vel) {
     velocidad = constrain(vel, 0, 255);
     analogWrite(enA, velocidad);  // Usar analogWrite para ENA
