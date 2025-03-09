@@ -4,7 +4,7 @@
 Motor::Motor(int _enA, int _in1, int _in2, int _enB, int _in3, int _in4) {
     enA = _enA; in1 = _in1; in2 = _in2;
     enB = _enB; in3 = _in3; in4 = _in4;
-    velocidad = 110;  // Velocidad inicial 110
+    velocidad = 130;  // Velocidad inicial 110
     estado = 0;       // Estado inicial: detenido
 }
 
@@ -28,12 +28,12 @@ void Motor::avanzar(int vel) {
     velocidad = constrain(vel, 110, 255);
     estado = 1;
     
-    analogWrite(enA, velocidad);Serial.println("1");
-    analogWrite(enB, velocidad);Serial.println("2");
-    digitalWrite(in1, LOW);Serial.println("3");
-    digitalWrite(in2, HIGH);Serial.println("4");
-    digitalWrite(in3, HIGH);Serial.println("5");
-    digitalWrite(in4, LOW);Serial.println("6");
+    analogWrite(enA, velocidad);
+    analogWrite(enB, velocidad);
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
 }
 
 void Motor::retroceder(int vel) {
@@ -59,7 +59,7 @@ void Motor::girarIzquierda(int vel) {
         return;
     }
     int velDer = vel;
-    int velIzq = vel * 0.6;  // Reducción del 40%
+    int velIzq = vel;  // Reducción del 40%
     Serial.printf("[Motor] Girar Izquierda: ENA=%d, ENB=%d\n", velDer, velIzq);
     
     velocidad = constrain(vel, 110, 255);
@@ -78,7 +78,7 @@ void Motor::girarDerecha(int vel) {
         return;
     }
     int velIzq = vel;
-    int velDer = vel * 0.6;  // Reducción del 40%
+    int velDer = vel;  // Reducción del 40%
     Serial.printf("[Motor] Girar Derecha: ENA=%d, ENB=%d\n", velDer, velIzq);
     
     velocidad = constrain(vel, 110, 255);

@@ -24,7 +24,8 @@ bool Sensor::iniciar() {
     }
 
     // Configurar modo de alta velocidad (opcional)
-    lox.configSensor(Adafruit_VL53L0X::VL53L0X_SENSE_HIGH_SPEED);
+    lox.configSensor(Adafruit_VL53L0X::VL53L0X_SENSE_DEFAULT);
+    //lox.setMeasurementTimingBudgetMicroSeconds(20000);
     Serial.println("[Sensor] Configuración exitosa");
     
     return true;
@@ -32,10 +33,11 @@ bool Sensor::iniciar() {
 
 int Sensor::medir() {
     VL53L0X_RangingMeasurementData_t medida;
-    lox.rangingTest(&medida, true); // Medición con debug
+    lox.rangingTest(&medida, false); // Medición con debug
     
     if (medida.RangeStatus != 4) { // 4 = Out of bounds
-        return medida.RangeMilliMeter;
+        Medida = medida.RangeMilliMeter;
+        return Medida;
     }
     return -1;
 }
