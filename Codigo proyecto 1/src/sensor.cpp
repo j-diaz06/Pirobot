@@ -24,7 +24,7 @@ bool Sensor::iniciar() {
     }
 
     // Configurar modo de alta velocidad (opcional)
-    lox.configSensor(Adafruit_VL53L0X::VL53L0X_SENSE_DEFAULT);
+    lox.configSensor(Adafruit_VL53L0X::VL53L0X_SENSE_HIGH_SPEED);
     //lox.setMeasurementTimingBudgetMicroSeconds(20000);
     Serial.println("[Sensor] Configuración exitosa");
     

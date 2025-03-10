@@ -5,7 +5,6 @@
 #include <Wire.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
-//#include <MPU6050.h>  // Biblioteca para MPU6050
 
 #define GYRO_FULL_SCALE_250_DPS  0x00
 #define GYRO_FULL_SCALE_500_DPS  0x08
@@ -26,31 +25,15 @@ private:
     float promedio = 0;
     unsigned long lastCalibration = 0;
     int16_t GyZ;
-    //float yaw = 0.0;
     long tiempo_prev = 0;
-
     SemaphoreHandle_t yawMutex;
     volatile float yaw; // Variable atómica para lectura/escritura
-
-/*
-    //MPU6050 mpu;
-    float dt;
-    float yaw = 0.0;
-    float accelAngleYaw = 0.0;
-    float alpha = 0.98; // Factor de filtro complementario
-    unsigned long lastUpdate = 0;*/
+    float currentYaw;
 public:
     // Constructor
     Giro_acel();
 
     float getYaw();
-/*
-    // Inicializar el MPU6050
-    void iniciar();
-
-    void actualizarFiltro();*/
-    //float obtenerYaw() { return yaw; }
-    //unsigned long getIntervaloCalibracion() const { return intervaloCalibracion; }
 
     int16_t leerRawGyroZ();
     void calibrateGyro();

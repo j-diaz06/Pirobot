@@ -16,11 +16,6 @@ private:
     Motor& motores;
     Maquina& maquina; // Referencia a Maquina
     unsigned long lastUpdate = 0;
-    //Sensor& sensor1;
-    //Sensor& sensor2;
-    //unsigned long lastSensor1Update = 0;
-    //unsigned long lastSensor2Update = 0;
-    //bool alternateSensor = false;
     
     void handleRoot();
     void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length);
