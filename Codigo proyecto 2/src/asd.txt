@@ -1,0 +1,49 @@
+graph TD
+    A[Inicio] --> B[Setup]
+    B --> C[Inicializar Serial]
+    C --> D[Inicializar I2C]
+    D --> E[maquina.iniciar]
+    E --> E1[Configurar motores]
+    E --> E2[Inicializar sensores]
+    E --> E3[Calibrar MPU6050]
+    B --> F[Crear tarea Yaw]
+    F --> F1[Leer giroscopio]
+    F1 --> F2[Calcular Yaw]
+    B --> G[Iniciar WebControl]
+    G --> G1[Conectar WiFi]
+    G1 --> G2[Iniciar servidor WebSocket]
+    
+    A --> H[Loop]
+    H --> I[maquina.ejecutar]
+    I --> I1{millis - lastMPURead > 50ms?}
+    I1 -->|Sí| J[Leer sensores]
+    J --> K[Actualizar distancias]
+    K --> L[Ejecutar máquina de estados]
+    L --> M{Obstáculo detectado?}
+    M -->|Sí| N[Cambiar estado a giro]
+    M -->|No| O[Mantener movimiento]
+    N --> P[Calcular yaw objetivo]
+    O --> Q[Ejecutar acción según estado]
+    Q --> R[Mover/Rotar/Detener]
+    
+    H --> S[webControl.handleClient]
+    S --> T[Actualizar datos sensores]
+    T --> U[Enviar datos por WebSocket]
+    
+    F2 -->|Actualización| V[Protección con Mutex]
+    V --> W[Integrar en máquina de estados]
+    
+    classDef main fill:#9f9,stroke:#333;
+    class A,B,H main;
+    
+    classDef sensor fill:#f96,stroke:#333;
+    class E2,J,K sensor;
+    
+    classDef mpu fill:#6cf,stroke:#333;
+    class E3,F1,F2,V mpu;
+    
+    classDef web fill:#fc3,stroke:#333;
+    class G,G1,G2,S,T,U web;
+    
+    classDef motor fill:#9cf,stroke:#333;
+    class E1,Q,R motor;
