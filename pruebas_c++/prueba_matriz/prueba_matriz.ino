@@ -2,7 +2,7 @@
 #include <Adafruit_NeoMatrix.h>
 #include <Adafruit_NeoPixel.h>
 
-#define PIN 6 // Pin de datos para la matriz
+#define PIN D2 // Pin de datos para la matriz
 
 // Definir la matriz 8x8
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(8, 8, PIN, 
@@ -11,14 +11,14 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(8, 8, PIN,
 
 // Definir las matrices para las figuras
 const uint8_t caritaFeliz[8][8] = {
-  {0, 0, 1, 1, 1, 1, 0, 0},
-  {0, 1, 0, 0, 0, 0, 1, 0},
+  {0, 1, 1, 1, 1, 1, 0, 0},
+  {0, 1, 1, 1, 0, 0, 1, 0},
   {1, 0, 1, 0, 0, 1, 0, 1},
   {1, 0, 0, 0, 0, 0, 0, 1},
   {1, 0, 1, 0, 0, 1, 0, 1},
   {1, 0, 0, 1, 1, 0, 0, 1},
-  {0, 1, 0, 0, 0, 0, 1, 0},
-  {0, 0, 1, 1, 1, 1, 0, 0}
+  {0, 1, 0, 0, 0, 0, 1, 1},
+  {0, 0, 1, 1, 1, 1, 1, 0}
 };
 
 void setup() {
@@ -29,7 +29,7 @@ void setup() {
 }
 
 void loop() {
-  dibujarFigura(caritaFeliz, matrix.Color(255, 165, 86)); // Amarillo
+  dibujarFigura(caritaFeliz, matrix.Color(124, 165, 86)); // Amarillo
   delay(2000);
 }
 

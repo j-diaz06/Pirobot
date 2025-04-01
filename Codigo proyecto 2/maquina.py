@@ -6,22 +6,23 @@ import _thread
 from giro_acel import GiroAcel
 from motor import Motor
 from sensor import SensorVL53L0X
+from mqtt_pirobot import mqtt_pirobot
 
 # Estados del sistema
 ESTADO_ADELANTE = 0
 ESTADO_DERECHA = 1
 ESTADO_IZQUIERDA = 2
-ESTADO_DETENIDO = 3
-ESTADO_ESPERA_ADELANTE = 4
-ESTADO_ESPERA_DERECHA = 5
-
-ESTADO_ESPERAR_CAMBIO = 6
+ESTADO_DETENER = 3
+#ESTADO_ESPERA_ADELANTE = 4
+#ESTADO_ESPERA_DERECHA = 5
+ESTADO_ESPERAR_CAMBIO = 4
 
 class Maquina:
     def __init__(self, ENA, IN1, IN2, ENB, IN3, IN4,
                  direccion_trasero, xshut_trasero,
                  direccion_delantero, xshut_delantero, DISTANCIA_MAXIMA,
-                 direccion_inicial, IntervaloCalibracion, TIEMPO_ESPERA):
+                 direccion_inicial, IntervaloCalibracion, TIEMPO_ESPERA,
+                 SSID,PASSWORD,MQTT_BROKER,CLIENT_ID):
 
         self.motores = Motor(ENA, IN1, IN2, ENB, IN3, IN4)
         self.sensor_trasero = SensorVL53L0X(direccion_trasero, xshut_trasero)
@@ -29,9 +30,10 @@ class Maquina:
         self.aceleracion_adelante = direccion_inicial
         self.i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=400000) # Pines por defecto, ajustar si es necesario
         self.giro_acel = GiroAcel(self.i2c, IntervaloCalibracion)  # Inicializar GiroAcel
+        self.mqtt = mqtt_pirobot(SSID,PASSWORD,MQTT_BROKER,CLIENT_ID)
         
 
-        self.estado_actual = ESTADO_ADELANTE
+        self.estado_actual = ESTADO_ESPERAR_CAMBIO
         self.DISTANCIA_DETECCION = DISTANCIA_MAXIMA
         #self.intervaloCalibracion = IntervaloCalibracion
         self.tiempo_espera = TIEMPO_ESPERA
@@ -39,12 +41,13 @@ class Maquina:
         self.yawObjetivo = 0.0
         self.conteo_espera = 0
         #self.lastCalCheck = 0
-        self.bypass = True
+        #self.bypass = True
         self.obstaculo_enfrente = False
         self.obstaculo_atras = False
         self.distancia_trasero = 0
         self.distancia_delantero = 0
         self.tiempo_vl53 = 0
+        self.espera_2nucleo = 0
         
         self.debug=0
 
@@ -99,7 +102,6 @@ class Maquina:
     def ejecutar_accion(self):
         #print("H")
         if self.estado_actual == ESTADO_ADELANTE:
-            
             print("B")
             if time.ticks_ms() - self.conteo_espera >= self.tiempo_espera:
                 self.estado_actual = ESTADO_ESPERAR_CAMBIO
@@ -108,7 +110,6 @@ class Maquina:
                 print("D")
                 self.mover()
         elif self.estado_actual == ESTADO_DERECHA:
-            
             print("E")
             if time.ticks_ms() - self.conteo_espera >= self.tiempo_espera:
                 self.estado_actual = ESTADO_ESPERAR_CAMBIO
@@ -116,6 +117,10 @@ class Maquina:
                 self.giro_acel._calibrar()
                 print("G")
                 self.motores.girar_derecha(self.motores.velocidad)
+        elif self.estado_actual == ESTADO_DETENER:
+            self.estado_actual = ESTADO_ESPERAR_CAMBIO
+            print("H")
+            self.motores.detener()
 
     def loop(self):
         if time.ticks_ms() - self.tiempo_vl53 > 10:
@@ -135,6 +140,8 @@ class Maquina:
             print("Yaw=", yawActual)
             self.debug = time.ticks_ms()
             
+        self.mqtt.wait_for_messages()
+            
         self.ejecutar_accion()
 
         """print("Estado: ", end="")
@@ -145,23 +152,19 @@ class Maquina:
         print()"""
 
     def iniciar(self):
-        #self.motores.configurar()
-        """
-        if self.sensor_trasero.iniciar():
-            print("[Sensor] Trasero inicializado correctamente")
-        else:
-            print("[Sensor] Error: Trasero no inicializado")
-
-        if self.sensor_delantero.iniciar():
-            print("[Sensor] delantero inicializado correctamente")
-        else:
-            print("[Sensor] Error: delantero no inicializado")"""
 
         print("[Maquina] Inicializada.")
+        
+        if self.mqtt.connect_wifi():
+            print("[Wifi] conectado.")
+            if self.mqtt.connect_mqtt():
+                # Suscribirse a un tópico y configurar la función de callback
+                self.mqtt.set_callback("esp32/movimiento", self)
 
         self.giro_acel.iniciar_mpu()  # Inicializar y calibrar MPU
 
-        self.mover()
+        #self.mover()
+        
         self.tiempo_vl53 = time.ticks_ms()
 
     def acelerarAdelante(self, nuevaDireccion):
@@ -169,5 +172,28 @@ class Maquina:
 
     def yaw_task(self):
         while True:
-            self.giro_acel.actualizar_yaw()
-            time.sleep_ms(5)
+            if time.ticks_ms() - self.espera_2nucleo > 5:
+                self.giro_acel.actualizar_yaw()
+                self.espera_2nucleo = time.ticks_ms()
+                #time.sleep_ms(5)
+            
+    def mqtt_recibido(self, topic, mensaje):
+        print(f"Mensaje recibido en {topic}: {mensaje}")
+        # Aquí pones la acción que quieres ejecutar
+        if mensaje == "adelante":
+            print("[mqtt] adelante")
+            self.aceleracion_adelante = True
+            self.estado_actual = ESTADO_ADELANTE
+        elif mensaje == "atras":
+            print("[mqtt] atras")
+            self.aceleracion_adelante = False
+            self.estado_actual = ESTADO_ADELANTE
+        elif mensaje == "detener":
+            print("[mqtt] detener")
+            self.estado_actual = ESTADO_DETENER
+        elif mensaje == "matriz_encender":
+            print("[mqtt] matriz_encender")
+            #llamar funcion que enciende la matriz
+        elif mensaje == "matriz_apagar":
+            print("[mqtt] matriz_apagar")
+            #llamar funcion que apaga la matriz

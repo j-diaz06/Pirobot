@@ -33,13 +33,22 @@ aceleracion_adelante = True  # Valor inicial
 
 intervaloCalibracion_yaw = 15000
 
+# Configuración Wi-Fi
+SSID = "Redmis"
+PASSWORD = "asdfg123"
+
+# Configuración MQTT
+MQTT_BROKER = "192.168.202.157"  # Reemplaza con la IP de tu Raspberry Pi
+CLIENT_ID = "esp32_client"  # ID del cliente MQTT
+
 # Inicializar I2C con los pines definidos
 i2c = I2C(0, scl=Pin(SCL_PIN), sda=Pin(SDA_PIN))
 
 maquina = Maquina(ENA, IN1, IN2, ENB, IN4, IN3,
                   DIRECCION_SENSOR_TRASERO, XSHUT_SENSOR_TRASERO,
                   DIRECCION_SENSOR_DELANTERO, XSHUT_SENSOR_DELANTERO, DISTANCIA_DETECCION,
-                  aceleracion_adelante, intervaloCalibracion_yaw, TIEMPO_CAMBIO_MARCHA)
+                  aceleracion_adelante, intervaloCalibracion_yaw, TIEMPO_CAMBIO_MARCHA,
+                  SSID,PASSWORD,MQTT_BROKER,CLIENT_ID)
 
 maquina.acelerarAdelante(True)  # Por ahora solo acelerará hacia adelante
 
