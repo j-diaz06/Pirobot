@@ -107,10 +107,23 @@ matriz_ejemplo = [
 ]
 
 # Llenar la matriz con un color
-matriz.ajustar_brillo(0.01)  # Brillo al 100%
-#matriz.llenar_matriz((150, 156, 18))  # Azul
-matriz.mostrar_matriz_grafica(matriz_ejemplo, color_encendido=(150, 156, 18)) # verde encendido, apagado negro
+matriz.ajustar_brillo(1)  # Brillo al 100%
+matriz.llenar_matriz((150, 156, 18))  # verde
+#matriz.llenar_matriz((255, 0, 0))  # rojo
+#matriz.llenar_matriz((0, 0, 255))  # rojo
+#matriz.mostrar_matriz_grafica(matriz_ejemplo, color_encendido=(150, 156, 18)) # verde encendido, apagado negro
 matriz.mostrar()
 
 #matriz.apagar_matriz()
 #matriz.mostrar()
+
+while True:
+    matriz.llenar_matriz((0, 0, 255))
+    matriz.mostrar()
+    time.sleep(1)
+    matriz.llenar_matriz((0, 255, 0))
+    matriz.mostrar()
+    time.sleep(1)
+    matriz.llenar_matriz((255, 0, 0))
+    matriz.mostrar()
+    time.sleep(1)

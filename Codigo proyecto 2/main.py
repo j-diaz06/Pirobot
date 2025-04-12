@@ -56,4 +56,4 @@ maquina.iniciar()
 
 while True:
     maquina.loop()
-    time.sleep_ms(1)  # Añadir un pequeño delay para evitar el bloqueo
+    #time.sleep_ms(1)  # Añadir un pequeño delay para evitar el bloqueo
