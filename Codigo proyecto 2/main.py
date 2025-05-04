@@ -31,7 +31,7 @@ UART_BAUDRATE = 115200
 # ... (igual que antes) ...
 SSID = "Redmis"
 PASSWORD = "asdfg123"
-MQTT_BROKER = "192.168.22.157"
+MQTT_BROKER = "192.168.230.157"
 CLIENT_ID_BASE = "esp32_vehicle"
 MI_ID = "vehiculo_1"
 
@@ -122,9 +122,66 @@ maquina.iniciar()
 debug_uart.write("--- Bucle Principal Iniciado (Depuración por Serial) ---") # Consola USB
 maquina.debug_serial("--- Bucle Principal Iniciado (Depuración por Serial HC05) ---") # HC-05
 
+uart_buffer = "" # Buffer para acumular datos de UART
+
 while True:
     try:
+        # 1. Procesar mensajes MQTT pendientes
         maquina.loop()
+
+        # 2. Revisar comandos por UART de depuración
+        if debug_uart.any():
+            try:
+                datos_recibidos_bytes = debug_uart.read()
+                if datos_recibidos_bytes:
+                    datos_recibidos_str = datos_recibidos_bytes.decode('utf-8')
+                    uart_buffer += datos_recibidos_str
+
+                    # >>> DEBUG: Mostrar buffer acumulado
+                    maquina.debug_serial(f"[UART Buffer Check] Buffer actual: {repr(uart_buffer)}")
+                    # <<<
+
+                    # --- NUEVO: Comprobar si el buffer contiene solo "OK" (ignorando espacios/caso) --- 
+                    buffer_limpio_upper = uart_buffer.strip().upper()
+                    if buffer_limpio_upper == "OK":
+                        maquina.debug_serial("[UART Rx Direct OK] 'OK' detectado en el buffer. Habilitando escucha...")
+                        maquina.habilitar_escucha_posicion()
+                        uart_buffer = "" # Limpiar buffer porque ya procesamos "OK"
+                    else:
+                        # --- Procesamiento normal basado en newline para OTROS comandos ---
+                        # Buscar comando completo (terminado en newline)
+                        if '\n' in uart_buffer:
+                            lineas = uart_buffer.split('\n')
+                            # Tomar la primera linea completa para procesar
+                            comando_completo = lineas.pop(0).strip().upper() 
+                            # Dejar el resto (incluyendo lineas incompletas) en el buffer para la siguiente iteración
+                            uart_buffer = '\n'.join(lineas) 
+
+                            # >>> DIAGNOSTICO: Imprimir valor exacto antes de comparar (para otros comandos)
+                            maquina.debug_serial(f"[UART Rx DEBUG NL] Procesando comando con NL: |{comando_completo}| (len={len(comando_completo)}) representacion={repr(comando_completo)}")
+                            # <<<
+
+                            maquina.debug_serial(f"[UART Rx Command NL] Recibido comando con NL: '{comando_completo}'")
+                            
+                            # Aquí ya no necesitamos el if comando_completo == "OK" porque se manejó arriba
+                            # Puedes añadir otros comandos aquí:
+                            # if comando_completo == "OTRO_COMANDO": 
+                            #     maquina.procesar_otro_comando()
+                            # else:
+                            #     maquina.debug_serial(f"[UART Rx Command NL] Comando no reconocido: '{comando_completo}'")
+                            # POR AHORA, como solo tenemos "OK", podemos asumir que cualquier cosa que llegue aquí no es reconocida (o añadir otros comandos)
+                            maquina.debug_serial(f"[UART Rx Command NL] Comando (con NL) no reconocido: '{comando_completo}'")
+
+            except UnicodeError:
+                maquina.debug_serial(f"[UART Rx Error] Error decodificando: {datos_recibidos_bytes}")
+                uart_buffer = "" # Limpiar buffer en caso de error
+            except Exception as e:
+                 maquina.debug_serial(f"[UART Rx Error] Leyendo UART: {e}")
+                 uart_buffer = "" # Limpiar buffer
+
+        # Pequeña pausa para ceder CPU si no hay nada que hacer
+        # time.sleep_ms(10) # Descomentar si es necesario reducir uso de CPU
+
     except KeyboardInterrupt:
         debug_uart.write("Programa detenido por el usuario.") # Consola USB
         maquina.detener()
