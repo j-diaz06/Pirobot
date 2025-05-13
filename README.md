@@ -1,5 +1,5 @@
 # Pirobot
-<a href="https://deepwiki.com/H1steria/Pirobot"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/H1steria/Pirobot)
 proyecto de embebidos
 
 integrantes:
