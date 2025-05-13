@@ -1,7 +1,11 @@
 # Pirobot
+## Proyecto de embebidos
+
+[ DOCUMENTACIÓN ]
+
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/H1steria/Pirobot)
 
-proyecto de embebidos
+
 
 integrantes:
 - samuel mora marin
