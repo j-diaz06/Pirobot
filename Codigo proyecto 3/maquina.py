@@ -920,13 +920,18 @@ class Maquina:
                     "timestamp_ms": ahora_task
                 }
                 try:
-                    self.mqtt.client.publish(self.mqtt_topic_estado, json.dumps(payload))
-                    # self.debug_serial(f"[Estado MQTT] Publicado a {self.mqtt_topic_estado}: {payload}") # Opcional: para depuración
+                    # Check if MQTT client is initialized before attempting to publish
+                    if self.mqtt and self.mqtt.client:
+                        self.mqtt.client.publish(self.mqtt_topic_estado, json.dumps(payload))
+                        self.debug_serial(f"[Estado MQTT] Publicado a {self.mqtt_topic_estado}: {payload}") # Opcional: para depuración
+                    else:
+                        # Client not ready, skip publishing. Optionally log this, but it might be noisy.
+                        self.debug_serial("[Estado MQTT] Cliente MQTT no listo, omitiendo publicación de estado.")
+                        pass
                 except Exception as e:
                     self.debug_serial(f"[Error Estado MQTT] Publicando: {e}")
                 self.last_publish_time_estado = ahora_task
             time.sleep_ms(3) # Ceder tiempo a otros procesos/hilos
-
     def iniciar(self):# revisado
         self.debug_serial(f"[Maquina] Inicializando vehículo ID: {self.MI_ID}") # <-- Usar debug_serial
 
