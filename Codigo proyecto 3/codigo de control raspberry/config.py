@@ -54,8 +54,15 @@ POSICION_NUEVA_Y = 1
 COLOR_PATRON_OBJETIVO = (255, 0, 255) # Magenta (BGR) para el patrón objetivo
 COLOR_CELDA_ASIGNADA_PATRON = (0, 255, 255) # Amarillo (BGR) para la celda asignada en el patrón
 
+# Colores para los patrones del vehículo (RGB)
+COLOR_ROJO_VEHICULO = (255, 0, 0)
+COLOR_VERDE_VEHICULO = (0, 255, 0)
+COLOR_AZUL_VEHICULO = (0, 0, 255)
+
+
 # PATRON_OBJETIVO: Matriz de 0s y 1s.
 # Las dimensiones deben ser FILAS_CUADRICULA x COLUMNAS_CUADRICULA.
+
 # El patrón se define visualmente (fila 0 del array es la fila superior de la figura).
 # Se convertirá para que la fila 0 del grid (abajo) corresponda.
 # Ejemplo: una 'L' simple para una cuadrícula 6x8 (6 filas, 8 columnas)
@@ -70,13 +77,67 @@ COLOR_CELDA_ASIGNADA_PATRON = (0, 255, 255) # Amarillo (BGR) para la celda asign
 
 PATRON_OBJETIVO = [
     [0,0,0,0,0,0,0,0], # fila 5 del grid
-    [0,0,1,0,0,1,0,0], # fila 4 del grid
-    [0,0,0,0,0,0,0,0], # fila 3 del grid
-    [0,0,0,0,0,0,0,0], # fila 2 del grid
-    [0,1,0,0,0,0,1,0], # fila 1 del grid
-    [0,0,1,1,1,1,0,0]  # fila 0 del grid
+    [0,0,0,0,0,0,0,0], # fila 4 del grid
+    [0,0,0,1,1,0,0,0], # 3,3 y 3,4
+    [0,0,0,1,1,0,0,0], # 2,3 y 2,4
+    [0,0,0,0,0,0,0,0], # fila 1 del grid
+    [0,0,0,0,0,0,0,0]  # fila 0 del grid
 ]
 
+posicion3_3 = [
+    [1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0]
+]
+
+posicion3_4 = [
+    [1,1,1,1,1,1,1,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1]
+]
+
+posicion2_3 = [
+    [0,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,0,0,0,0,0,0,0],
+    [1,1,1,1,1,1,1,1]
+]
+
+posicion2_4 = [
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1]
+]
+
+# Mapeo de celda objetivo (col_grid, fila_grid_logica_desde_abajo_0) a
+# (nombre_del_patron_en_config, nombre_del_color_en_config)
+# Estas celdas deben coincidir con las generadas por traducir_patron_a_celdas_objetivo
+# a partir de PATRON_OBJETIVO.
+CELDA_A_PATRON_COLOR = {
+    (3, 3): ("posicion3_3", "COLOR_ROJO_VEHICULO"),   # Corresponde a PATRON_OBJETIVO[2][3]
+    (4, 3): ("posicion3_4", "COLOR_VERDE_VEHICULO"), # Corresponde a PATRON_OBJETIVO[2][4]
+    (3, 2): ("posicion2_3", "COLOR_AZUL_VEHICULO"),   # Corresponde a PATRON_OBJETIVO[3][3]
+    (4, 2): ("posicion2_4", "COLOR_ROJO_VEHICULO"),  # Corresponde a PATRON_OBJETIVO[3][4] (ej. reusar color)
+}
 # Validar que el patrón tenga las dimensiones correctas (opcional pero recomendado)
 if len(PATRON_OBJETIVO) != FILAS_CUADRICULA or \
    (FILAS_CUADRICULA > 0 and len(PATRON_OBJETIVO[0]) != COLUMNAS_CUADRICULA):

@@ -108,6 +108,16 @@ def run_shape_formation_loop(celdas_patron_objetivo):
                 print(f"Confirmado: Mover vehículo a celda de patrón {celda_asignada_actual_patron}.")
                 mqtt.enviar_comando_movimiento(config.TARGET_VEHICLE_ID, celda_asignada_actual_patron[0], celda_asignada_actual_patron[1])
                 print(f"Comando de movimiento a ({celda_asignada_actual_patron[0]}, {celda_asignada_actual_patron[1]}) enviado.")
+
+                # --- NUEVO: Enviar comando para mostrar patrón y color ---
+                if celda_asignada_actual_patron in config.CELDA_A_PATRON_COLOR:
+                    nombre_patron, nombre_color = config.CELDA_A_PATRON_COLOR[celda_asignada_actual_patron]
+                    print(f"Celda {celda_asignada_actual_patron} mapea a patrón '{nombre_patron}' y color '{nombre_color}'.")
+                    mqtt.enviar_comando_mostrar_patron_vehiculo(config.TARGET_VEHICLE_ID, nombre_patron, nombre_color)
+                else:
+                    print(f"Advertencia: La celda asignada {celda_asignada_actual_patron} no tiene un patrón/color definido en CELDA_A_PATRON_COLOR.")
+                # --- FIN NUEVO ---
+
             elif not detectado_ahora: print("No se ha detectado ningún vehículo para mover.")
             elif not celda_asignada_actual_patron: print("No hay celda asignada en el patrón para el vehículo.")
         elif key == ord('r'):

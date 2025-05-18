@@ -94,3 +94,29 @@ def enviar_comando_movimiento(vehicle_id, x_destino, y_destino):
     payload_json = json.dumps(payload_dict) #
     print(f"Enviando comando movimiento a [{topic}]: {payload_json}") #
     client.publish(topic, payload_json, qos=0) # QoS 0 como en el ejemplo original [cite: 8]
+
+def enviar_comando_mostrar_patron_vehiculo(vehicle_id, nombre_patron_config, nombre_color_config):
+    """Envia un comando para que el vehículo muestre un patrón específico con un color específico."""
+    global client
+    if not client or not client.is_connected():
+        print("Error: Cliente MQTT no conectado.")
+        return
+
+    # Obtener el patrón real (matriz) y el color real (tuple RGB) desde config
+    try:
+        patron_matriz = getattr(config, nombre_patron_config)
+        color_tuple = getattr(config, nombre_color_config)
+    except AttributeError as e:
+        print(f"Error: No se encontró el patrón '{nombre_patron_config}' o el color '{nombre_color_config}' en config.py: {e}")
+        return
+
+    topic = config.TOPIC_COMANDO # Usar el mismo topic de comando general
+    payload_dict = {
+        "id_vehiculo": vehicle_id,
+        "accion": "mostrar_patron_especifico", # Nueva acción para el vehículo
+        "patron": patron_matriz,             # La matriz de 0s y 1s
+        "color": color_tuple                 # El tuple (R, G, B)
+    }
+    payload_json = json.dumps(payload_dict)
+    print(f"Enviando comando mostrar patrón específico a [{topic}]: {payload_json}")
+    client.publish(topic, payload_json, qos=0)
