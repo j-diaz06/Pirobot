@@ -64,6 +64,7 @@ class Maquina:
         self.mqtt_topic_estado = f"vehiculos/estado_actual/{self.MI_ID}"
         self.last_publish_time_estado = 0
         self.publish_interval_estado_ms = 1000 # Publicar estado cada 1 segundo (ajustable)
+        self.forzar_actualizacion_estado = False
 
         self.debug_serial(f"[Init] Matriz configurada en pin {pin_matriz}.")
 
@@ -89,7 +90,6 @@ class Maquina:
         # self.debug_serial("   Intentando detener motores...") # Opcional
         if not self.motores_activos: return
         self.motores.detener()
-        self.estado_movimiento_global = "detenido"
         self.motores_activos = False
 
     def normalizar_angulo(self, angulo):
@@ -161,7 +161,7 @@ class Maquina:
     def _ejecutar_giro_pid_paso(self, yaw_objetivo_absoluto):
         """Ejecuta el bucle PID para alcanzar un yaw_objetivo_absoluto específico. Devuelve True si éxito, False si falla."""
         self.motores_activos = True
-        self.estado_movimiento_global = "moviendo"
+        #self.estado_movimiento_global = "moviendo"
         self.girando = True # Marcar como girando durante el paso
 
         # --- Inicialización PID (para este paso) ---
@@ -206,7 +206,7 @@ class Maquina:
 
                 #self.debug_serial(f"            Pulso {accion_pulso} ({DURACION_PULSO_GIRO_MS}ms @ {VELOCIDAD_GIRO_PULSO})")
                 self.motores_activos = True # Asegurar que esté activo para el pulso
-                self.estado_movimiento_global = "moviendo" # Estado cambia a moviendo por el pulso
+                #self.estado_movimiento_global = "moviendo" # Estado cambia a moviendo por el pulso
                 time.sleep_ms(DURACION_PULSO_GIRO_MS)
                 self.detener()
                 #self.debug_serial(f"            Pausa post-pulso ({PAUSA_ENTRE_PULSOS_GIRO_MS}ms)")
@@ -269,6 +269,10 @@ class Maquina:
 
     def ejecutar_movimiento(self, destino_str):# revisado
         """Mueve el robot a la celda destino, priorizando el eje actual y calibrando al inicio."""
+
+        self.estado_movimiento_global = "moviendo"
+        self.forzar_actualizacion_estado = True
+
         self.debug_serial(f"[Accion] Iniciando secuencia de movimiento hacia: {destino_str}")
         if not self.posicion_actual:
             self.debug_serial("[Error] Posición actual desconocida.")
@@ -447,6 +451,8 @@ class Maquina:
         # --- Finalización ---
         if movimiento_exitoso_total:
             if movimiento_x_necesario or movimiento_y_necesario:
+                self.estado_movimiento_global = "detenido"
+                self.forzar_actualizacion_estado=True
                 self.posicion_actual = destino_str
                 self.debug_serial(f"[Accion] Secuencia hacia {destino_str} completada exitosamente.")
                 self.debug_serial(f"[Estado] Nueva posición: {self.posicion_actual}, Alineación final: {self.alineacion_actual}")
@@ -498,7 +504,7 @@ class Maquina:
         if adelante: self.motores.avanzar(VELOCIDAD_MOVIMIENTO)#self.motores.in1.value(0); self.motores.in2.value(1); self.motores.in3.value(1); self.motores.in4.value(0)
         else: self.motores.retroceder(VELOCIDAD_MOVIMIENTO)#self.motores.in1.value(1); self.motores.in2.value(0); self.motores.in3.value(0); self.motores.in4.value(1)
         self.motores_activos = True
-        self.estado_movimiento_global = "moviendo"
+        #self.estado_movimiento_global = "moviendo"
 
         movimiento_completado = False
         # Añadir un temporizador para debug similar al de girar
@@ -736,7 +742,7 @@ class Maquina:
 
             #self.debug_serial(f"      Aplicando acción motor: {accion_motor} por {pulso_ms}ms")
             self.motores_activos = True
-            self.estado_movimiento_global = "moviendo" # Movimiento durante el pulso
+            #self.estado_movimiento_global = "moviendo" # Movimiento durante el pulso
 
             # Mover durante el pulso calculado
             time.sleep_ms(pulso_ms)
@@ -857,9 +863,34 @@ class Maquina:
 
         return matriz_rotada
     # --- FIN NUEVO ---
+    
+    # --- NUEVO: Método para mostrar un patrón dinámico con color ---
+    def _mostrar_patron_dinamico(self, patron_matriz, color_rgb):
+        self.debug_serial(f"[Matriz] Mostrando patrón dinámico con color {color_rgb}")
+
+        grados_rotacion = 0
+        if self.alineacion_actual == 'Y':
+            grados_rotacion = 180
+        elif self.alineacion_actual == 'X':
+            grados_rotacion = 90
+        
+        self.matriz.ajustar_brillo(brillo_matriz) # Usar brillo global de config
+
+        matriz_a_mostrar = patron_matriz
+        if grados_rotacion != 0:
+             self.debug_serial(f"      Rotando patrón dinámico {grados_rotacion}° por alineación '{self.alineacion_actual}'")
+             # Asegurarse que _rotar_matriz puede manejar el formato de patron_matriz
+             matriz_a_mostrar = self._rotar_matriz(patron_matriz, grados_rotacion)
+        else:
+             self.debug_serial(f"      No se requiere rotación para patrón dinámico (Alineación: {self.alineacion_actual})")
+
+        self.matriz.mostrar_matriz_grafica(matriz_a_mostrar, color_rgb) # color_rgb es el tuple (R,G,B)
+        self.matriz.mostrar()
+    # --- FIN NUEVO ---
 
     def controlar_matriz(self, figura=None):
         self.debug_serial(f"[Matriz] Controlando figura: {figura}")
+
 
         # Determinar grados de rotación según la alineación actual
         grados_rotacion = 0
@@ -894,7 +925,7 @@ class Maquina:
         else:
             self.debug_serial(f"[Error] Figura no reconocida: {figura}")
 
-    def yaw_task(self):# revisado
+    def yaw_task(self):
         """Tarea en segundo plano SOLO para actualizar el Yaw."""
         self.debug_serial("[Yaw Task] Iniciada.") # <-- Usar debug_serial
         while True:
@@ -911,7 +942,7 @@ class Maquina:
             #self.espera_2nucleo = time.ticks_ms()
 
             # --- Publicar estado global periódicamente ---
-            if time.ticks_diff(ahora_task, self.last_publish_time_estado) > self.publish_interval_estado_ms:
+            if time.ticks_diff(ahora_task, self.last_publish_time_estado) > self.publish_interval_estado_ms or self.forzar_actualizacion_estado:
                 payload = {
                     "id_vehiculo": self.MI_ID,
                     "angulo": round(self.angulo_global, 2),
@@ -920,25 +951,32 @@ class Maquina:
                     "timestamp_ms": ahora_task
                 }
                 try:
-                    self.mqtt.client.publish(self.mqtt_topic_estado, json.dumps(payload))
-                    # self.debug_serial(f"[Estado MQTT] Publicado a {self.mqtt_topic_estado}: {payload}") # Opcional: para depuración
+                    # Check if MQTT client is initialized before attempting to publish
+                    if self.mqtt and self.mqtt.client:
+                        self.mqtt.client.publish(self.mqtt_topic_estado, json.dumps(payload))
+                        #self.debug_serial(f"[Estado MQTT] Publicado a {self.mqtt_topic_estado}: {payload}") # Opcional: para depuración
+                    else:
+                        # Client not ready, skip publishing. Optionally log this, but it might be noisy.
+                        self.debug_serial("[Estado MQTT] Cliente MQTT no listo, omitiendo publicación de estado.")
+                        pass
                 except Exception as e:
                     self.debug_serial(f"[Error Estado MQTT] Publicando: {e}")
                 self.last_publish_time_estado = ahora_task
+                self.forzar_actualizacion_estado = False # Restablecer la bandera después de la publicación
             time.sleep_ms(3) # Ceder tiempo a otros procesos/hilos
 
-    def iniciar(self):# revisado
-        self.debug_serial(f"[Maquina] Inicializando vehículo ID: {self.MI_ID}") # <-- Usar debug_serial
+    def iniciar(self):
+        self.debug_serial(f"[Maquina] Inicializando vehículo ID: {self.MI_ID}")
 
         self.controlar_matriz("apagar") # Apagar matriz al iniciar
 
         try:
             # iniciar_mpu usará el debug_uart pasado en __init__
             self.giro_acel.iniciar_mpu()
-            self.debug_serial("[Giro] MPU inicializado y calibrado.") # <-- Usar debug_serial
+            self.debug_serial("[Giro] MPU inicializado y calibrado.")
         except Exception as e:
             # El MPU es crítico, detener si falla
-            self.debug_serial(f"[Error Fatal] MPU6050: {e}. Deteniendo.") # <-- Usar debug_serial
+            self.debug_serial(f"[Error Fatal] MPU6050: {e}. Deteniendo.")
             # sys.print_exception(e, self.debug_uart_stream) # Opcional
             return
             
@@ -1061,6 +1099,18 @@ class Maquina:
                     elif accion == 'apagar':
                         self.controlar_matriz("apagar")
                         self.debug_serial(f"[Comando] Ejecución apagar matriz finalizada.")
+                    elif accion == 'mostrar_patron_especifico': # Nueva acción
+                        patron_recibido = comando_accion.get('patron')
+                        color_recibido = comando_accion.get('color') # Esto será una lista [R, G, B] desde JSON
+                        if patron_recibido and color_recibido is not None: # color_recibido puede ser (0,0,0)
+                            color_tuple = tuple(color_recibido) # Convertir lista a tupla
+                            self.debug_serial(f"[Comando] Mostrando patrón específico con color {color_tuple}.")
+                            self._mostrar_patron_dinamico(patron_recibido, color_tuple)
+                            self.debug_serial(f"[Comando] Ejecución visualización patrón específico finalizada.")
+                        else:
+                            self.debug_serial("[Comando Error] Faltan 'patron' o 'color' para 'mostrar_patron_especifico'.")
+                            self.ultimo_comando_ejecutado = {} # Resetear para permitir reintento
+
                     else:
                         self.debug_serial(f"[Comando Error] Acción no reconocida: {comando_accion}")
                         self.ultimo_comando_ejecutado = {}
